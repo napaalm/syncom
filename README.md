@@ -1,3 +1,3 @@
-# dav-syncer
+# syncom
 
-Script per scaricare i comunicati da nuvola
+Semplice script per scaricare periodicamente i comunicati da nuvola.madisoft.it
