@@ -11,14 +11,16 @@ def main():
     with requests.Session() as sesh:
         # obtain csrf token from login page
         r = sesh.get("https://nuvola.madisoft.it/login")
-        if r.status_code != 200: die("error while fetching login page")
+        if r.status_code != 200: raise Exception("error while fetching login page")
         csrf_token = html.fromstring(r.content).xpath("//input[@name='_csrf_token']/@value")
+
         # perform log in
         r = sesh.post(
             "https://nuvola.madisoft.it/login_check",
-            data={"_csrf_token":csrf_token, "_username":"", "_password":""},
-            headers={"Origin":"https://nuvola.madisoft.it", "Referer":"https://nuvola.madisoft.it/login"}
+            data={"_csrf_token": csrf_token, "_username": "", "_password": ""},
+            headers={"Origin": "https://nuvola.madisoft.it", "Referer": "https://nuvola.madisoft.it/login"}
         )
+
         # get & parse rss feed
         r = sesh.get(FEED)
 
@@ -35,9 +37,6 @@ def main():
                 print(f"{name}\t{pdf_link}")
             except: pass
     # TODO handle ANY errors at all
-
-def die(reason):
-    raise Exception(reason)
 
 if __name__ == "__main__":
     main()
