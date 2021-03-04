@@ -35,18 +35,21 @@ def main():
         # get & parse rss feed
         r = sesh.get(FEED)
 
-        for item in etree.fromstring(r.content).find("channel").iterchildren("item"):
-            # get link to download page for each item
-            page_link = item.find("link").text
-            r = sesh.get(page_link)
+        # iterate over the links
+        for elem in html.fromstring(r.content).xpath("/html/body/div[1]/div[1]/div/div/div[4]/div/form/div[2]/table/tbody")[0].iterlinks():
             try:
+                # open comunicato's page
+                r = sesh.get(elem[2])
+
                 # extract link to pdf and original filename from page
                 dl_page = html.fromstring(r.content)
                 pdf_link = dl_page.xpath("//a[contains(@class, 'download-wrapper')]/@href")[0]
                 pdf_link = urljoin("https://nuvola.madisoft.it", pdf_link)
                 name = dl_page.xpath("//*[contains(@class, 'file-name')]/div/text()")[0]
                 print(f"{name}\t{pdf_link}")
-            except: pass
+            # discard invalid links
+            except requests.exceptions.MissingSchema:
+                pass
     # TODO handle ANY errors at all
 
 if __name__ == "__main__":
