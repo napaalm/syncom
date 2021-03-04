@@ -24,12 +24,13 @@ def main():
         if r.status_code != 200: raise Exception("error while fetching login page")
         csrf_token = html.fromstring(r.content).xpath("//input[@name='_csrf_token']/@value")
 
-        # perform log in
+        # perform log in and check if it's successful
         r = sesh.post(
             "https://nuvola.madisoft.it/login_check",
-            data={"_csrf_token": csrf_token, "_username": "", "_password": ""},
+            data={"_csrf_token": csrf_token, "_username": args.username, "_password": args.password},
             headers={"Origin": "https://nuvola.madisoft.it", "Referer": "https://nuvola.madisoft.it/login"}
         )
+        if "credenziali" in r.content.decode(): parser.error("credenziali errate")
 
         # get & parse rss feed
         r = sesh.get(FEED)
