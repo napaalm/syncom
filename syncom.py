@@ -7,7 +7,7 @@ import lxml.etree as etree
 import requests
 from urllib.parse import urljoin
 
-FEED = "paste url here"
+categories = {}
 
 def main():
     # setup argument parser
@@ -32,24 +32,26 @@ def main():
         )
         if "credenziali" in r.content.decode(): parser.error("credenziali errate")
 
-        # get & parse rss feed
-        r = sesh.get(FEED)
+        # iterate over all types of comunicati
+        for category, url in categories.items():
+            # get & parse comunicati's list
+            r = sesh.get(url)
 
-        # iterate over the links
-        for elem in html.fromstring(r.content).xpath("/html/body/div[1]/div[1]/div/div/div[4]/div/form/div[2]/table/tbody")[0].iterlinks():
-            try:
-                # open comunicato's page
-                r = sesh.get(elem[2])
+            # iterate over the links
+            for elem in html.fromstring(r.content).xpath("/html/body/div[1]/div[1]/div/div/div[4]/div/form/div[2]/table/tbody")[0].iterlinks():
+                try:
+                    # open comunicato's page
+                    r = sesh.get(elem[2])
 
-                # extract link to pdf and original filename from page
-                dl_page = html.fromstring(r.content)
-                pdf_link = dl_page.xpath("//a[contains(@class, 'download-wrapper')]/@href")[0]
-                pdf_link = urljoin("https://nuvola.madisoft.it", pdf_link)
-                name = dl_page.xpath("//*[contains(@class, 'file-name')]/div/text()")[0]
-                print(f"{name}\t{pdf_link}")
-            # discard invalid links
-            except requests.exceptions.MissingSchema:
-                pass
+                    # extract link to pdf and original filename from page
+                    dl_page = html.fromstring(r.content)
+                    pdf_link = dl_page.xpath("//a[contains(@class, 'download-wrapper')]/@href")[0]
+                    pdf_link = urljoin("https://nuvola.madisoft.it", pdf_link)
+                    name = dl_page.xpath("//*[contains(@class, 'file-name')]/div/text()")[0]
+                    print(f"{name}\t{pdf_link}")
+                # discard invalid links
+                except requests.exceptions.MissingSchema:
+                    pass
     # TODO handle ANY errors at all
 
 if __name__ == "__main__":
