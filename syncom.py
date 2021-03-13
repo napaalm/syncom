@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import argparse
 import lxml.html as html
 import lxml.etree as etree
@@ -34,6 +35,10 @@ def main():
 
         # iterate over all types of comunicati
         for category, url in categories.items():
+            # create category's directory if it doesn't exist yet
+            if not os.path.exists(category):
+                os.makedirs(category)
+
             # get & parse comunicati's list
             r = sesh.get(url)
 
@@ -49,6 +54,11 @@ def main():
                     pdf_link = urljoin("https://nuvola.madisoft.it", pdf_link)
                     name = dl_page.xpath("//*[contains(@class, 'file-name')]/div/text()")[0]
                     print(f"{name}\t{pdf_link}")
+
+                    # download and save the file
+                    r = sesh.get(pdf_link)
+                    with open(os.path.join(category, name), "wb") as f:
+                        f.write(r.content)
                 # discard invalid links
                 except requests.exceptions.MissingSchema:
                     pass
