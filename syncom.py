@@ -61,10 +61,12 @@ def main():
                     name = dl_page.xpath("//*[contains(@class, 'file-name')]/div/text()")[0]
                     print(f"{name}\t{pdf_link}")
 
-                    # download and save the file
-                    r = sesh.get(pdf_link)
-                    with open(os.path.join(category, name), "wb") as f:
-                        f.write(r.content)
+                    # download and save the file if it doesn't exist
+                    file_path = os.path.join(category, name)
+                    if not os.path.isfile(file_path):
+                        r = sesh.get(pdf_link)
+                        with open(file_path, "wb") as f:
+                            f.write(r.content)
                 # discard invalid links
                 except requests.exceptions.MissingSchema:
                     pass
