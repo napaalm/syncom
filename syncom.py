@@ -18,6 +18,10 @@ def main():
     # parse arguments
     args = parser.parse_args()
 
+    # error out if no category is specified
+    if not args.c:
+        parser.error("nessuna categoria specificata!")
+
     # parse categories
     categories = {name:url for (name, url) in args.c}
 
