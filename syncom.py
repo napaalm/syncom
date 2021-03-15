@@ -2,11 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 import argparse
 import lxml.html as html
 import lxml.etree as etree
 import requests
 from urllib.parse import urljoin
+
+# regex that matches a comunicato's filename
+filename_regex = re.compile(r"^\d+[ _]*-.*\.pdf$")
 
 def main():
     # setup argument parser
@@ -54,17 +58,19 @@ def main():
                     # open comunicato's page
                     r = sesh.get(elem[2])
 
-                    # extract link to pdf and original filename from page
+                    # extract links and filenames from page
                     dl_page = html.fromstring(r.content)
-                    pdf_link = dl_page.xpath("//a[contains(@class, 'download-wrapper')]/@href")[0]
-                    pdf_link = urljoin("https://nuvola.madisoft.it", pdf_link)
-                    name = dl_page.xpath("//*[contains(@class, 'file-name')]/div/text()")[0]
-                    print(f"{name}\t{pdf_link}")
+                    pdf_links = dl_page.xpath("//a[contains(@class, 'download-wrapper')]/@href")
+                    filenames = dl_page.xpath("//*[contains(@class, 'file-name')]/div/text()")
+
+                    # find the comunicato among the files using the regex
+                    filename, link = next(filter(lambda p: filename_regex.match(p[0]), zip(filenames, pdf_links)))
 
                     # download and save the file if it doesn't exist
-                    file_path = os.path.join(category, name)
+                    file_path = os.path.join(category, filename)
                     if not os.path.isfile(file_path):
-                        r = sesh.get(pdf_link)
+                        # "link" is relative
+                        r = sesh.get(urljoin("https://nuvola.madisoft.it", link))
                         with open(file_path, "wb") as f:
                             f.write(r.content)
                 # discard invalid links
