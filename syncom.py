@@ -17,6 +17,7 @@ def main():
     parser = argparse.ArgumentParser(description="Semplice script per scaricare periodicamente i comunicati da nuvola.madisoft.it")
     parser.add_argument("username", metavar="USER", type=str, help="nome utente per il registro")
     parser.add_argument("password", metavar="PASS", type=str, help="password per il registro")
+    parser.add_argument("-d", metavar="directory", type=str, default=".", help="directory dove salvare i comunicati (default: .)")
     parser.add_argument("-c", metavar=("nome", "url"), action='append', type=str, nargs=2, help="categoria di comunicati")
 
     # parse arguments
@@ -45,9 +46,12 @@ def main():
 
         # iterate over all types of comunicati
         for category, url in categories.items():
+            # add root directory
+            directory = os.path.join(args.d, category)
+
             # create category's directory if it doesn't exist yet
-            if not os.path.exists(category):
-                os.makedirs(category)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
             # get & parse comunicati's list
             r = sesh.get(url)
@@ -67,7 +71,7 @@ def main():
                     filename, link = next(filter(lambda p: filename_regex.match(p[0]), zip(filenames, pdf_links)))
 
                     # download and save the file if it doesn't exist
-                    file_path = os.path.join(category, filename)
+                    file_path = os.path.join(directory, filename)
                     if not os.path.isfile(file_path):
                         # "link" is relative
                         r = sesh.get(urljoin("https://nuvola.madisoft.it", link))
