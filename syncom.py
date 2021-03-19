@@ -98,8 +98,8 @@ def main():
 
                                 # set file creation date
                                 os.utime(file_path, (time.time(), date.timestamp()))
-                        # discard invalid links
-                        except requests.exceptions.MissingSchema:
+                        # discard invalid links and missing comunicato files
+                        except (requests.exceptions.MissingSchema, StopIteration):
                             pass
 
                 # sleep for 5 minutes
