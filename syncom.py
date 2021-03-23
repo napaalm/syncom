@@ -73,7 +73,7 @@ def login(sesh, username, password):
     )
     if "credenziali" in r.content.decode():
         logging.critical("Credenziali errate")
-        exit(1)
+        sys.exit(1)
 
     logging.info("Login effettuato")
 
@@ -201,7 +201,7 @@ def main():
                 time.sleep(300)
     except KeyboardInterrupt:
         logging.info("Uscita...")
-        exit(0)
+        sys.exit(0)
 
 if __name__ == "__main__":
     # print program info
