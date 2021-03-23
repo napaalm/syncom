@@ -27,3 +27,13 @@ optional arguments:
 ```
 ./syncom.py -v -l "output.log" "test-user" "password" -c "comunicati-studenti" "https://nuvola.madisoft.it/bacheca-digitale/bacheca/XXXXXXX/N/NNNNNNN" -d "./comunicati"
 ```
+
+# Compilazione
+Installare [docker](docker.com) ed eseguire i due seguenti comandi nella cartella del repository:
+```
+docker run -v "$(pwd):/src/" cdrx/pyinstaller-linux
+```
+```
+docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows
+```
+Dopodiché si potranno trovare gli eseguibili per linux e per windows nella cartella `dist`.
