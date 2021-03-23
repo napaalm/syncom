@@ -181,8 +181,15 @@ def main():
         exit(0)
 
 if __name__ == "__main__":
-    try:
-        main()
-    # log any unhandled exception
-    except Exception as e:
-        logging.exception(e)
+    # print program info
+    print(f"syncom {__version__}")
+    print(__copyright__)
+    print()
+
+    # emergency recovery
+    while True:
+        try:
+            main()
+        # log any unhandled exception
+        except Exception as e:
+            logging.exception(e)
