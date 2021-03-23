@@ -34,6 +34,11 @@ from urllib.parse import urljoin
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
+__author__ = "Antonio Napolitano"
+__copyright__ = f"Copyright (C) 2021 {__author__}"
+__license__ = "GNU General Public License 3"
+__version__ = "git-source"
+
 # regex that matches a comunicato's filename
 filename_regex = re.compile(r"^\d+[ _]*-.*\.pdf$")
 
