@@ -7,12 +7,12 @@ import sys
 import time
 import logging
 import argparse
+import requests
 import logging.config
 import lxml.html as html
 import lxml.etree as etree
-import requests
-from urllib.parse import urljoin
 from datetime import datetime
+from urllib.parse import urljoin
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
