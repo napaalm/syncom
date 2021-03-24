@@ -34,6 +34,6 @@ Installare [docker](docker.com) ed eseguire i due seguenti comandi nella cartell
 docker run -v "$(pwd):/src/" cdrx/pyinstaller-linux
 ```
 ```
-docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows
+docker run -v "$(pwd):/src/" --entrypoint /bin/sh cdrx/pyinstaller-windows -c "apt-get update -y && apt-get install -y git && cd /src && git describe --always --dirty --tags > /tmp/version && /entrypoint.sh"
 ```
 Dopodiché si potranno trovare gli eseguibili per linux e per windows nella cartella `dist`.
