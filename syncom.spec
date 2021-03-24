@@ -24,7 +24,7 @@ block_cipher = None
 a = Analysis(['syncom.py'],
              pathex=['/src'],
              binaries=[],
-             datas=[],
+             datas=[('error.pdf', '.')],
              hiddenimports=[],
              hookspath=[],
              # version hook written above

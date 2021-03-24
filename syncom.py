@@ -26,6 +26,7 @@ import time
 import logging
 import argparse
 import requests
+import unicodedata
 import logging.config
 import lxml.html as html
 import lxml.etree as etree
@@ -47,6 +48,33 @@ filename_regex = re.compile(r"^\d+[ _]*-.*\.pdf$")
 
 # log levels
 log_level = [logging.ERROR, logging.INFO]
+
+# base path for data (this way of getting it is to ensure that it works also when packaged)
+try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    base_path = sys._MEIPASS
+except Exception:
+    base_path = os.path.abspath(".")
+
+# read error pdf file
+with open(os.path.join(base_path, "error.pdf"), "rb") as error_pdf_file:
+    error_pdf = error_pdf_file.read()
+
+def slugify(value, allow_unicode=False):
+    """
+    Taken from https://github.com/django/django/blob/master/django/utils/text.py
+    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+    dashes to single dashes. Remove characters that aren't alphanumerics,
+    underscores, or hyphens. Convert to lowercase. Also strip leading and
+    trailing whitespace, dashes, and underscores.
+    """
+    value = str(value)
+    if allow_unicode:
+        value = unicodedata.normalize('NFKC', value)
+    else:
+        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+    value = re.sub(r'[^\w\s-]', '', value.lower())
+    return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 def requests_retry_session(backoff_factor=1, status_forcelist=(500, 502, 504)):
     session = requests.Session()
@@ -175,19 +203,31 @@ def main():
                             filenames = dl_page.xpath("//*[contains(@class, 'file-name')]/div/text()")
                             date = datetime.strptime(dl_page.xpath("/html/body/div[1]/div[1]/div/div/div[2]/div[1]/div[1]/div[2]")[0].text.strip(), "%d/%m/%Y")
 
-                            # find the comunicato among the files using the regex
-                            filename, pdf_link = next(filter(lambda p: filename_regex.match(p[0]), zip(filenames, pdf_links)))
+                            try:
+                                # find the comunicato among the files using the regex
+                                filename, pdf_link = next(filter(lambda p: filename_regex.match(p[0]), zip(filenames, pdf_links)))
 
-                            # "pdf_link" is relative
-                            pdf_link = urljoin("https://nuvola.madisoft.it", pdf_link)
+                                # "pdf_link" is relative
+                                pdf_link = urljoin("https://nuvola.madisoft.it", pdf_link)
+
+                                # download the file
+                                r = sesh.get(pdf_link)
+                                pdf = r.content
+                            # handle missing comunicato files by saving a special pdf file
+                            except StopIteration:
+                                logging.error(f"Impossibile estrarre il comunicato al link {comunicato_link}")
+
+                                # construct a filename from the page title
+                                title = dl_page.xpath("/html/body/div[1]/div[1]/div/div/div[1]/div[1]/h3")[0].text
+                                filename = slugify(title) + ".pdf"
+                                pdf = error_pdf
 
                             # download and save the file if it doesn't exist
                             file_path = os.path.join(directory, filename)
                             if not os.path.isfile(file_path):
-                                r = sesh.get(pdf_link)
                                 with open(file_path, "wb") as f:
                                     logging.info(f"Salvataggio del file {file_path} in corso...")
-                                    f.write(r.content)
+                                    f.write(pdf)
                                     logging.info("File salvato con successo!")
 
                                 # set file creation date
@@ -195,9 +235,6 @@ def main():
                         # discard invalid links
                         except requests.exceptions.MissingSchema:
                             pass
-                        # log missing comunicato files
-                        except StopIteration:
-                            logging.error(f"Impossibile estrarre il comunicato al link {comunicato_link}")
 
                 # sleep for 5 minutes
                 logging.info("Attendo 5 minuti...")
